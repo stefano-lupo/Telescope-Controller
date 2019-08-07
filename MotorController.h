@@ -3,6 +3,7 @@
 #include <IRremote.h>
 #include "Event.h"
 #include "ButtonEventMapping.h"
+#include "Coordinate.h"
 
 const int DEFAULT_MOTOR_TICK_PERIOD_MS = 750;
 
@@ -33,8 +34,8 @@ class MotorController {
         int dirPin, stepPin, sleepPin, resetPin, ms1, ms2, ms3, ledPin;
     
         boolean active = true;
-        boolean direction = 0;
-        int stepSizeIndex = 0;
+        boolean direction = 1;
+        int stepSizeIndex = 2;
         int interuptPeriodMillis, accumulatedTimeMillis = 0, motorTickPeriodMillis = DEFAULT_MOTOR_TICK_PERIOD_MS;
         boolean needsMove = false;
 };

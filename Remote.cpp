@@ -51,7 +51,6 @@ Event Remote::checkForPress() {
   if (this->_irRecv.decode(&this->_decodedSig)) {
     // Serial.println(this->_decodedSig.value, HEX);
     unsigned long keyCode = _decodedSig.value;
-    Serial.println(keyCode);
     Event event = this->decodeKeyPress(keyCode);
     this->_irRecv.resume();
     return event;

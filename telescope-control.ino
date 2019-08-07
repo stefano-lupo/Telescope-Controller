@@ -1,6 +1,9 @@
 #include "Remote.h"
 #include "MotorController.h"
 #include "CameraController.h"
+#include "Screen.h"
+#include "Coordinate.h"
+#include "Navigator.h"
 
 // Stepper pins
 const int DIR_PIN = 2;
@@ -12,7 +15,7 @@ const int MS2 = 7;
 const int MS1 = 8;
 
 // IR Pins
-const int REMOTE_PIN = 13;
+const int REMOTE_PIN = A0;
 const int IR_LED_PIN = 10;
 Remote remote(REMOTE_PIN);
 
@@ -20,6 +23,10 @@ Remote remote(REMOTE_PIN);
 const int SETUP_LED_PIN = A7;
 const int MOTOR_LED_PIN = 11;
 const int CAPTURE_LED_PIN = 12;
+
+// Screen Pins
+const int SDA_PIN = A4;
+const int SCL_PIN = A5;
 
 // Timer constants
 const float MILLISECONDS_PER_SECOND = 1000;
@@ -32,6 +39,8 @@ const uint16_t T1_COMPARE_VALUE = EFFECTIVE_CLOCK_RATE * (INTERRUPT_PERIOD_MS / 
 // Instantiation
 MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, MOTOR_LED_PIN, INTERRUPT_PERIOD_MS);
 CameraController cameraController(IR_LED_PIN, CAPTURE_LED_PIN, INTERRUPT_PERIOD_MS);
+Screen screen(SDA_PIN, SCL_PIN);
+
 
 void setup() {
   Serial.begin(115200);
@@ -45,6 +54,7 @@ void setup() {
   remote.setup();
   motorController.setup();
   cameraController.setup();
+  screen.setup();
 
   delay(5000);
   digitalWrite(SETUP_LED_PIN, LOW);
@@ -89,8 +99,19 @@ void configureTimers() {
 
   // Alternative method, generating an interupt every 100ms
   // Count is: 62,500 * 0.1 = 6,250
+
+  // Coordinates Calculations for RA
+  // 144 RA knob rotations = 24 hours = 1440 minutes (full rotation)
+  // 1 RA knob rotation = 10 minutes
+  // Stepping          Num steps          Minutes per step
+  // ------------------------------------------------------------
+  //    1/1        |       200          |         10 / 200 = 0.05 = 3s
+  //    1/2        |       400          |         10 / 400 = 0.025 = 1.5s
+  //    1/4        |       800          |         10 / 800 = 0.0125 = 0.75s
+  //    1/8        |       1600         |         10 / 1600 = 0.00625 = 0.375s
+  //    1/16       |       3200         |         10 / 3200 = 0.003125 = 0.1875s
   
-//  cli();          // Stop interupts
+  cli();          // Stop interupts
   TCCR1A = 0;     // Reset timer 1's control registers
 //  TCCR1B = 0;     // Reset timer 1's control registers (not sure if this is needed?)
   
@@ -121,7 +142,6 @@ void configureTimers() {
 //  Serial.println(T1_COMPARE_VALUE);
 }
 
-
 void cycleRotate() {
   motorController.enableMotor();
   motorController.stepMotor(300);
@@ -136,19 +156,12 @@ void cycleRotate() {
   motorController.toggleDirection();
 }
 
-
-int i=1;
 void loop() {
-  if (i % 10000 == 0) {
-    Serial.println("Still looping");
-    i = 1;
-  } else {
-    i++;
-  }
   Event event = remote.checkForPress();
   switch (event) {
     case Event::START_MOTOR:
       motorController.enableMotor();
+      screen.write();
       break;
     case Event::STOP_MOTOR:
       motorController.disableMotor();
@@ -198,7 +211,6 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   // Reset timer1 to zero to consume interupt
   TCNT1 = T1_LOAD_VALUE;
-  // Serial.println("Timed interupt here!");
   cameraController.tick();
   motorController.tick();
 }

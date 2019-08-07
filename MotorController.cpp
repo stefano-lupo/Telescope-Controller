@@ -49,6 +49,11 @@ void MotorController::toggleDirection() {
   Serial.println("Swapping motor direction");
 }
 
+void MotorController::setDirection(boolean direction) {
+  this->direction = direction;
+}
+
+
 void MotorController::increaseSpeed() {
   this->motorTickPeriodMillis -= MotorController::TIME_CHANGE;
 }
@@ -57,24 +62,32 @@ void MotorController::decreaseSpeed() {
   this->motorTickPeriodMillis += MotorController::TIME_CHANGE;
 }
 
-void MotorController::nextStepSize() {
-  this->stepSizeIndex = (this->stepSizeIndex + 1) % 5;
+void MotorController::setFullStep() {
+  this->setStepSize(0);
+}
+
+void MotorController::setHalfStep() {
+  this->setStepSize(1);
+}
+
+void MotorController::setQuarterStep() {
+  this->setStepSize(2);
 }
 
 void MotorController::setStepSize(int stepSizeIndex) {
+  this->stepSizeIndex = stepSizeIndex;
   int* encodedStepSize = MotorController::ENCODED_STEP_SIZES[stepSizeIndex];
   digitalWrite(this->ms1, encodedStepSize[0]);
   digitalWrite(this->ms2, encodedStepSize[1]);
   digitalWrite(this->ms3, encodedStepSize[2]);
 }
 
+
 void MotorController::stepMotor() {
   if (!this->active) {
-//    Serial.println("Had step request but am sleeping");
     return;
   }
 
-//  Serial.println("Stepping Motor");
   digitalWrite(this->stepPin, HIGH);
   delayMicroseconds(MotorController::STEP_PULSE_TIME_MICRO);
   digitalWrite(this->stepPin, LOW);
@@ -87,21 +100,21 @@ void MotorController::stepMotor(int numSteps) {
   }
 }
 
-void MotorController::tick() {
-  if (!this->active) {
-    return;
-  }
+// void MotorController::tick() {
+//   if (!this->active) {
+//     return;
+//   }
   
-  this->accumulatedTimeMillis += this->interuptPeriodMillis;
-  if (this->accumulatedTimeMillis >= this->motorTickPeriodMillis) {
-    this->needsMove = true;
-    this->accumulatedTimeMillis -= this->motorTickPeriodMillis;
-  }
-}
+//   this->accumulatedTimeMillis += this->interuptPeriodMillis;
+//   if (this->accumulatedTimeMillis >= this->motorTickPeriodMillis) {
+//     this->needsMove = true;
+//     this->accumulatedTimeMillis -= this->motorTickPeriodMillis;
+//   }
+// }
 
-void MotorController::moveIfNesc() {
-  if (this->needsMove) {
-    this->stepMotor();
-    this->needsMove = false;
-  }
-}
+// void MotorController::moveIfNesc() {
+//   if (this->needsMove) {
+//     this->stepMotor();
+//     this->needsMove = false;
+//   }
+// }

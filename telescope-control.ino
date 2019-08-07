@@ -4,6 +4,7 @@
 #include "Screen.h"
 #include "Coordinate.h"
 #include "Navigator.h"
+#include "Tracker.h"
 
 // Stepper pins
 const int DIR_PIN = 2;
@@ -40,6 +41,8 @@ const uint16_t T1_COMPARE_VALUE = EFFECTIVE_CLOCK_RATE * (INTERRUPT_PERIOD_MS / 
 MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, MOTOR_LED_PIN, INTERRUPT_PERIOD_MS);
 CameraController cameraController(IR_LED_PIN, CAPTURE_LED_PIN, INTERRUPT_PERIOD_MS);
 Screen screen(SDA_PIN, SCL_PIN);
+Tracker tracker(INTERRUPT_PERIOD_MS);
+Navigator navigator(motorController, tracker);
 
 
 void setup() {
@@ -200,7 +203,7 @@ void loop() {
       break;
   }
   
-  motorController.moveIfNesc();
+  navigator.moveIfNesc();
   cameraController.shutterIfNesc();
 //  cycleRotate();
   delay(1);
@@ -212,5 +215,5 @@ ISR(TIMER1_COMPA_vect) {
   // Reset timer1 to zero to consume interupt
   TCNT1 = T1_LOAD_VALUE;
   cameraController.tick();
-  motorController.tick();
+  tracker.tick();
 }

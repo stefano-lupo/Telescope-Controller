@@ -1,66 +1,147 @@
 #include "Navigator.h"
 
 void Navigator::moveIfNesc() {
-  switch (this->state) {
-    case NavigatorState::TRACKING:
-      int movesNeeded = this->tracker.getMovesNeeded();
+  switch (state) {
+    case NavigatorState::TRACKING: {
+      // Serial.println("Tracking");
+      int movesNeeded = tracker.getMovesNeeded();
+      int accumTime = tracker.getAccumulatedTimeMillis();
       if (movesNeeded > 0) {
-        this->motorController.setDirection(MotorController::RA);
-        this->motorController.setQuarterStep();
-        this->motorController.stepMotor(movesNeeded);
-        this->tracker.consumeMovesNeeded(movesNeeded);
-        break;
+        motorController.setDirection(MotorController::RA);
+        motorController.setQuarterStep();
+        motorController.stepMotor(movesNeeded);
+        tracker.consumeMovesNeeded(movesNeeded);
+        // Serial.print("Tracking: Moved ");
+        // Serial.println(movesNeeded);
       }
-    case NavigatorState::SLEWING:
-      Coordinate delta = this->targetCoord.subtract(this->currentCoord);
-      if (delta.hours != 0) {
-        this->slewOneMinute(delta.hours);
-      } else if (delta.minutes != 0) {
-        this->slewOneMinute(delta.minutes);
-      } else {
-        this->slewSeconds(delta.seconds);
-        this->state = NavigatorState::TRACKING;
-      }
-      break;
 
-    default:
-      return;
+      break;
+    }
+
+    case NavigatorState::SLEWING: {
+      // Serial.println("Slewing");
+
+      Coordinate delta = Coordinate::subtract(targetCoord, currentCoord);
+
+      Serial.print("Had delta of ");
+      char str[16];
+      delta.formatString(str);
+      Serial.println(str);
+
+      if (delta.hours != 0) {
+        boolean sign = delta.hours > 0 ? 1 : - 1;
+        int hoursToSlewThisTick = min(abs(delta.hours), Navigator::MAX_HOURS_SLEW_PER_TICK) * sign;
+        slewHours(hoursToSlewThisTick);
+        Serial.print("Slewed ");
+        Serial.print(hoursToSlewThisTick);
+        Serial.println(" hours");
+      } else if (delta.minutes != 0) {
+        slewMinutes(delta.minutes);
+        Serial.print("Slewed ");
+        Serial.print(delta.minutes);
+        Serial.println(" minutes");
+      } else {
+        slewSeconds(delta.seconds);
+        Serial.print("Slewed ");
+        Serial.print(delta.seconds);
+        Serial.println(" seconds");
+        state = NavigatorState::TRACKING;
+      }
+
+
+      break;
+    }
+
+    case NavigatorState::IDLE: {
+      // Serial.println("Idle");
+      break;
+    }
+
+    default: {
+      Serial.println("Navigator in unknown navigation state");
+    }
   }
 }
 
-void Navigator::setTargetCoord(Coordinate coord) {
-  this->targetCoord = coord;
+void Navigator::setTargetCoord(const Coordinate& coord) {
+  targetCoord = coord;
+  // char str[16];
+  // targetCoord.formatString(str);
+  // Serial.print("Setting target: ");
+  // Serial.println(str);
 }
 
-void Navigator::setCurrentCoord(Coordinate coord) {
-  this->currentCoord = coord;
+void Navigator::setCurrentCoord(const Coordinate& coord) {
+  currentCoord = coord;
+}
+
+const Coordinate& Navigator::getTargetCoord() {
+  return targetCoord;
+}
+
+const Coordinate& Navigator::getCurrentCoord() {
+  return currentCoord;
 }
 
 void Navigator::slewToTarget() {
-  this->state = NavigatorState::SLEWING;
+  state = NavigatorState::SLEWING;
 }
 
+void Navigator::trackTarget() {
+  state = NavigatorState::TRACKING;
+}
 
-void Navigator::slewOneMinute(int deltaValue) {
-  this->motorController.setDirection(this->getDirectionFromDelta(deltaValue));
-  this->motorController.setFullStep();
-  this->motorController.stepMotor(NUM_FULL_STEPS_IN_MINUTE);
+void Navigator::disableNavigation() {
+  state = NavigatorState::IDLE;
+}
+
+void Navigator::slewHours(int numHours) {
+  boolean direction = getDirectionFromDelta(numHours);
+  motorController.setFullStep();
+  slew(direction, numHours * NUM_FULL_STEPS_IN_HOUR);
+  currentCoord.addHours(numHours);
+}
+
+void Navigator::slewMinutes(int numMinutes) {
+  boolean direction = getDirectionFromDelta(numMinutes);
+  motorController.setFullStep();
+  slew(direction, numMinutes * NUM_FULL_STEPS_IN_MINUTE);
+  currentCoord.addMinutes(numMinutes);
 }
 
 void Navigator::slewSeconds(int deltaSeconds) {
-  this->motorController.setDirection(this->getDirectionFromDelta(deltaSeconds));
+  boolean direction = getDirectionFromDelta(deltaSeconds);
 
   int numFullSteps = abs(deltaSeconds) / SECONDS_PER_FULL_STEP;
-  this->motorController.setFullStep();
-  this->motorController.stepMotor(numFullSteps);
+  motorController.setFullStep();
+  slew(direction, numFullSteps);
 
   // Within 3 seconds at this point
   byte remainingSeconds = abs(deltaSeconds) - numFullSteps * SECONDS_PER_FULL_STEP;
-  byte numQuarterSteps = remainingSeconds / (SECONDS_PER_FULL_STEP / (4));
-  this->motorController.setQuarterStep();
-  this->motorController.stepMotor(numQuarterSteps);
+  byte numQuarterSteps = remainingSeconds / (SECONDS_PER_FULL_STEP / 4);
+  motorController.setQuarterStep();
+  slew(direction, numQuarterSteps);
+
+  currentCoord.addSeconds(deltaSeconds);
+}
+
+void Navigator::slew(boolean direction, int numSteps) {
+  motorController.setDirection(direction);
+  motorController.stepMotor(abs(numSteps));
 }
 
 boolean Navigator::getDirectionFromDelta(int deltaValue) {
   return deltaValue > 0 ? MotorController::RA : MotorController::ANTI_RA;
+}
+
+
+char Navigator::getEncodedState() {
+  switch (state) {
+    case NavigatorState::IDLE:
+      return 'I';
+    case NavigatorState::TRACKING:
+      return 'T';
+    case NavigatorState::SLEWING:
+      return 'S';
+  }
 }

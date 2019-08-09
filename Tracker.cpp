@@ -1,15 +1,24 @@
 #include "Tracker.h"
 
-void Tracker::tick() {  
-  this->accumulatedTimeMillis += this-> interruptPeriodMillis;
-  if (this->accumulatedTimeMillis >= this->motorTickPeriodMillis) {
-    this->movesNeeded++;
-    this->accumulatedTimeMillis -= this->motorTickPeriodMillis;
+
+void Tracker::tick() {
+  accumulatedTimeMillis += interruptPeriodMillis;
+  if (accumulatedTimeMillis >= motorTickPeriodMillis) {
+    movesNeeded++;
+    accumulatedTimeMillis -= motorTickPeriodMillis;
   }
 }
 
 int Tracker::getMovesNeeded() {
-  return this->movesNeeded;
+  return movesNeeded;
+}
+
+uint16_t Tracker::getItm() {
+  return interruptPeriodMillis;
+}
+
+int Tracker::getAccumulatedTimeMillis() {
+  return accumulatedTimeMillis;
 }
 
 void Tracker::consumeMovesNeeded(int movesNeeded) {

@@ -16,14 +16,9 @@ const int MS2 = 7;
 const int MS1 = 8;
 
 // IR Pins
-const int REMOTE_PIN = A0;
+const int REMOTE_PIN = 11;
 const int IR_LED_PIN = 10;
 Remote remote(REMOTE_PIN);
-
-// Status LED Pins
-const int SETUP_LED_PIN = A7;
-const int MOTOR_LED_PIN = 11;
-const int CAPTURE_LED_PIN = 12;
 
 // Screen Pins
 const int SDA_PIN = A4;
@@ -38,18 +33,17 @@ const uint16_t T1_LOAD_VALUE = 0;
 const uint16_t T1_COMPARE_VALUE = EFFECTIVE_CLOCK_RATE * (INTERRUPT_PERIOD_MS / MILLISECONDS_PER_SECOND);
 
 // Instantiation
-MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, MOTOR_LED_PIN, INTERRUPT_PERIOD_MS);
-CameraController cameraController(IR_LED_PIN, CAPTURE_LED_PIN, INTERRUPT_PERIOD_MS);
-Screen screen(SDA_PIN, SCL_PIN);
+MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, INTERRUPT_PERIOD_MS);
+CameraController cameraController(IR_LED_PIN, INTERRUPT_PERIOD_MS);
 Tracker tracker(INTERRUPT_PERIOD_MS);
 Navigator navigator(motorController, tracker);
-
+Screen screen(navigator);
+// int x1 = 10, x2 = 11, x3 = 12;
+// Coordinate vega(0, 0, 0);
+// Coordinate altair(x3, x2, x1);
 
 void setup() {
-  Serial.begin(115200);
-  pinMode(SETUP_LED_PIN, OUTPUT);
-  digitalWrite(SETUP_LED_PIN, HIGH);
-
+  Serial.begin(9600);
   Serial.println("Starting telescope controller");
 
   configureTimers();
@@ -58,10 +52,39 @@ void setup() {
   motorController.setup();
   cameraController.setup();
   screen.setup();
-
-  delay(5000);
-  digitalWrite(SETUP_LED_PIN, LOW);
   
+
+  navigator.setCurrentCoord(TEST2);
+  navigator.setTargetCoord(TEST1);
+
+  printCoord(Coordinate::add(Coordinate(23, 59, 1), Coordinate(1, 1, 1)));
+  printCoord(Coordinate::subtract(Coordinate(0, 0, 0), Coordinate(1, 1, 1)));
+
+  const Coordinate& c1 = navigator.getCurrentCoord();
+  const Coordinate& c2 = navigator.getTargetCoord();
+
+  // Serial.println("Current: ");
+  // Serial.println(c1.hours);
+  // Serial.println(c1.minutes);
+  // Serial.println(c1.seconds);
+
+  // Serial.println("Target: ");
+  // Serial.println(c2.hours);
+  // Serial.println(c2.minutes);
+  // Serial.println(c2.seconds);
+  // navigator.getCurrentCoord();
+  // navigator.getTargetCoord();
+
+  // navigator.trackTarget();
+
+  delay(2000);
+  
+}
+
+void printCoord(Coordinate c) {
+  char str[16];
+  c.formatString(str);
+  Serial.println(str);
 }
 
 // Configure 16bit timer1 to count in milliseconds (@ 1KHz)
@@ -132,17 +155,6 @@ void configureTimers() {
 
   // Enable global interupts
   sei();
-
-//  delay(5000);
-//  Serial.print("Effective clock rate: ");
-//  Serial.println(EFFECTIVE_CLOCK_RATE);
-//
-//  Serial.print("Starting using an interrupt period of ");
-//  Serial.print(INTERRUPT_PERIOD_MS);
-//  Serial.println("ms");
-//
-//  Serial.print("Using compare value of ");
-//  Serial.println(T1_COMPARE_VALUE);
 }
 
 void cycleRotate() {
@@ -151,7 +163,7 @@ void cycleRotate() {
   motorController.disableMotor();
   
   motorController.toggleDirection();
-  delay(2000);
+  delay(1000);
 
   motorController.enableMotor();
   motorController.stepMotor(300);
@@ -159,15 +171,27 @@ void cycleRotate() {
   motorController.toggleDirection();
 }
 
+int i = 1;
+
 void loop() {
+  if (i == 5) {
+    Serial.println("Starting slew");
+    // navigator.slewToTarget();
+    i = 501;
+  } else if (i < 500) {
+    i++;
+  }
   Event event = remote.checkForPress();
   switch (event) {
     case Event::START_MOTOR:
-      motorController.enableMotor();
-      screen.write();
+      // motorController.enableMotor();
+      // screen.write("Enabling Motor");
+      navigator.slewToTarget();
       break;
     case Event::STOP_MOTOR:
       motorController.disableMotor();
+      // screen.write("Disabling Motor");
+      navigator.disableNavigation();
       break;
     case Event::CHANGE_MOTOR_DIRECTION:
       motorController.toggleDirection();
@@ -191,7 +215,8 @@ void loop() {
       cameraController.enableCapturing();
       break;
     case Event::STOP_CAPTURING:
-      cameraController.disableCapturing();
+      // cameraController.disableCapturing();
+      navigator.trackTarget();
       break;      
     case Event::BUTTON_HELD:
 //      Serial.println("Button held");
@@ -205,8 +230,11 @@ void loop() {
   
   navigator.moveIfNesc();
   cameraController.shutterIfNesc();
-//  cycleRotate();
-  delay(1);
+
+  // screen.writeCurrent();
+  // screen.writeTarget();
+  screen.update();
+  delay(500);
 }
 
 
@@ -216,4 +244,5 @@ ISR(TIMER1_COMPA_vect) {
   TCNT1 = T1_LOAD_VALUE;
   cameraController.tick();
   tracker.tick();
+  // Serial.println("Interupt");
 }

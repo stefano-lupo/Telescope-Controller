@@ -11,110 +11,105 @@ const int MotorController::ENCODED_STEP_SIZES[5][3] = {
 };
 
 void MotorController::setup() {
-    pinMode(this->sleepPin, OUTPUT);
-    pinMode(this->stepPin, OUTPUT);
-    pinMode(this->dirPin, OUTPUT);
-    pinMode(this->ms1, OUTPUT);
-    pinMode(this->ms2, OUTPUT);
-    pinMode(this->ms3, OUTPUT);
-    pinMode(this->ledPin, OUTPUT);
+    pinMode(sleepPin, OUTPUT);
+    pinMode(stepPin, OUTPUT);
+    pinMode(dirPin, OUTPUT);
+    pinMode(ms1, OUTPUT);
+    pinMode(ms2, OUTPUT);
+    pinMode(ms3, OUTPUT);
     
-    digitalWrite(this->dirPin, this->direction);
-    digitalWrite(this->sleepPin, this->active);
-    digitalWrite(this->ledPin, this->active);
-    this->setStepSize(this->stepSizeIndex);
+    digitalWrite(dirPin, direction);
+    digitalWrite(sleepPin, active);
+    setStepSize(stepSizeIndex);
 }
 
 void MotorController::toggleMotor() {
-  digitalWrite(this->sleepPin, this->active);
-  digitalWrite(this->resetPin, this->active);
-  digitalWrite(this->ledPin, this->active);
+  digitalWrite(sleepPin, active);
+  digitalWrite(resetPin, active);
 }
 
 void MotorController::enableMotor() {
-  Serial.println("Enabling motor");
-  this->active = true;
-  this->toggleMotor();
+  // Serial.println("Enabling motor");
+  active = true;
+  toggleMotor();
 }
 
 void MotorController::disableMotor() {
-  Serial.println("Disabling motor");
-  this->active = false;
-  this->toggleMotor();
+  // Serial.println("Disabling motor");
+  active = false;
+  toggleMotor();
 }
 
 void MotorController::toggleDirection() {
-  this->direction = !this->direction;
-  digitalWrite(this->dirPin, this->direction);
+  direction = !direction;
+  digitalWrite(dirPin, direction);
   Serial.println("Swapping motor direction");
 }
 
 void MotorController::setDirection(boolean direction) {
-  this->direction = direction;
+  direction = direction;
 }
 
 
 void MotorController::increaseSpeed() {
-  this->motorTickPeriodMillis -= MotorController::TIME_CHANGE;
+  motorTickPeriodMillis -= MotorController::TIME_CHANGE;
 }
 
 void MotorController::decreaseSpeed() {
-  this->motorTickPeriodMillis += MotorController::TIME_CHANGE;
+  motorTickPeriodMillis += MotorController::TIME_CHANGE;
 }
 
 void MotorController::setFullStep() {
-  this->setStepSize(0);
+  setStepSize(0);
 }
 
 void MotorController::setHalfStep() {
-  this->setStepSize(1);
+  setStepSize(1);
 }
 
 void MotorController::setQuarterStep() {
-  this->setStepSize(2);
+  setStepSize(2);
 }
 
 void MotorController::setStepSize(int stepSizeIndex) {
-  this->stepSizeIndex = stepSizeIndex;
+  stepSizeIndex = stepSizeIndex;
   int* encodedStepSize = MotorController::ENCODED_STEP_SIZES[stepSizeIndex];
-  digitalWrite(this->ms1, encodedStepSize[0]);
-  digitalWrite(this->ms2, encodedStepSize[1]);
-  digitalWrite(this->ms3, encodedStepSize[2]);
+  digitalWrite(ms1, encodedStepSize[0]);
+  digitalWrite(ms2, encodedStepSize[1]);
+  digitalWrite(ms3, encodedStepSize[2]);
 }
 
 
 void MotorController::stepMotor() {
-  if (!this->active) {
-    return;
-  }
-
-  digitalWrite(this->stepPin, HIGH);
+  enableMotor();
+  digitalWrite(stepPin, HIGH);
   delayMicroseconds(MotorController::STEP_PULSE_TIME_MICRO);
-  digitalWrite(this->stepPin, LOW);
+  digitalWrite(stepPin, LOW);
   delayMicroseconds(MotorController::STEP_PULSE_TIME_MICRO);
+  disableMotor();
 }
 
 void MotorController::stepMotor(int numSteps) {
   for (int i=0; i<numSteps; i++) {
-    this->stepMotor();  
+    stepMotor();  
   }
 }
 
 // void MotorController::tick() {
-//   if (!this->active) {
+//   if (!active) {
 //     return;
 //   }
   
-//   this->accumulatedTimeMillis += this->interuptPeriodMillis;
-//   if (this->accumulatedTimeMillis >= this->motorTickPeriodMillis) {
-//     this->needsMove = true;
-//     this->accumulatedTimeMillis -= this->motorTickPeriodMillis;
+//   accumulatedTimeMillis += interuptPeriodMillis;
+//   if (accumulatedTimeMillis >= motorTickPeriodMillis) {
+//     needsMove = true;
+//     accumulatedTimeMillis -= motorTickPeriodMillis;
 //   }
 // }
 
 // void MotorController::moveIfNesc() {
-//   if (this->needsMove) {
-//     this->stepMotor();
-//     this->needsMove = false;
+//   if (needsMove) {
+//     stepMotor();
+//     needsMove = false;
 //   }
 // }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdio.h>
 
 class Coordinate {
     public:
@@ -10,7 +9,8 @@ class Coordinate {
         static Coordinate add(Coordinate, Coordinate);
         static Coordinate subtract(Coordinate, Coordinate);
         static Coordinate negate(Coordinate);
-        // static Coordinate getMinDistanceBetween(Coordinate);
+        static Coordinate getMinimumDelta(Coordinate, Coordinate);
+        static Coordinate signedDelta(Coordinate, Coordinate);
         void addHours(int numHours);
         void addMinutes(int numMinutes);
         void addSeconds(int numSeconds);
@@ -18,6 +18,6 @@ class Coordinate {
         int hours, minutes, seconds;
 
     private:
-        void preAdjustForFlow(int x1, int x2, int* overflowTarget, int base);
+        // void preAdjustForFlow(int x1, int x2, int* overflowTarget, int base, int overflowBase);
         int addWithWrapping(int a, int b, int base);
 };

@@ -11,7 +11,10 @@ class Tracker {
         int getAccumulatedTimeMillis();
         uint16_t getItm();
         void consumeMovesNeeded(int movesNeeded);
+        void startTracker();
+        void stopTracker();
     private:
         uint16_t interruptPeriodMillis;
+        bool started = false;
         int motorTickPeriodMillis = DEFAULT_TRACK_PERIOD, movesNeeded = 0, accumulatedTimeMillis = 0;
 };

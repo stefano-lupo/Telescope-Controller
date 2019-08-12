@@ -21,33 +21,30 @@ void MotorController::setup() {
     digitalWrite(dirPin, direction);
     digitalWrite(sleepPin, active);
     setStepSize(stepSizeIndex);
+    disableMotor();
 }
 
 void MotorController::toggleMotor() {
   digitalWrite(sleepPin, active);
-  digitalWrite(resetPin, active);
 }
 
 void MotorController::enableMotor() {
-  // Serial.println("Enabling motor");
+  Serial.println("Enabling motor");
   active = true;
   toggleMotor();
 }
 
 void MotorController::disableMotor() {
-  // Serial.println("Disabling motor");
+   Serial.println("Disabling motor");
   active = false;
   toggleMotor();
 }
 
-void MotorController::toggleDirection() {
-  direction = !direction;
-  digitalWrite(dirPin, direction);
-  Serial.println("Swapping motor direction");
-}
 
 void MotorController::setDirection(boolean direction) {
   direction = direction;
+  digitalWrite(dirPin, direction);
+  Serial.println("Setting motor direction");
 }
 
 
@@ -81,35 +78,21 @@ void MotorController::setStepSize(int stepSizeIndex) {
 
 
 void MotorController::stepMotor() {
-  enableMotor();
+  // enableMotor();
   digitalWrite(stepPin, HIGH);
   delayMicroseconds(MotorController::STEP_PULSE_TIME_MICRO);
   digitalWrite(stepPin, LOW);
   delayMicroseconds(MotorController::STEP_PULSE_TIME_MICRO);
-  disableMotor();
+  // disableMotor();
 }
 
 void MotorController::stepMotor(int numSteps) {
+  // enableMotor();
+  if (!active) {
+    enableMotor();
+  }
   for (int i=0; i<numSteps; i++) {
     stepMotor();  
   }
+  // disableMotor();
 }
-
-// void MotorController::tick() {
-//   if (!active) {
-//     return;
-//   }
-  
-//   accumulatedTimeMillis += interuptPeriodMillis;
-//   if (accumulatedTimeMillis >= motorTickPeriodMillis) {
-//     needsMove = true;
-//     accumulatedTimeMillis -= motorTickPeriodMillis;
-//   }
-// }
-
-// void MotorController::moveIfNesc() {
-//   if (needsMove) {
-//     stepMotor();
-//     needsMove = false;
-//   }
-// }

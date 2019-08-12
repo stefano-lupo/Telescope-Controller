@@ -10,7 +10,6 @@
 const int DIR_PIN = 2;
 const int STEP_PIN = 3;
 const int SLEEP_PIN = 4;
-const int RESET_PIN = 4;
 const int MS3 = 6;
 const int MS2 = 7;
 const int MS1 = 8;
@@ -33,7 +32,7 @@ const uint16_t T1_LOAD_VALUE = 0;
 const uint16_t T1_COMPARE_VALUE = EFFECTIVE_CLOCK_RATE * (INTERRUPT_PERIOD_MS / MILLISECONDS_PER_SECOND);
 
 // Instantiation
-MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, INTERRUPT_PERIOD_MS);
+MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, MS1, MS2, MS3, INTERRUPT_PERIOD_MS);
 CameraController cameraController(IR_LED_PIN, INTERRUPT_PERIOD_MS);
 Tracker tracker(INTERRUPT_PERIOD_MS);
 Navigator navigator(motorController, tracker);
@@ -51,17 +50,30 @@ void setup() {
   remote.setup();
   motorController.setup();
   cameraController.setup();
+//  screen.setup();
+//  
+//
+  navigator.setCurrentCoord(VEGA);
+  navigator.setTargetCoord(DENEB);
+
+  delay(5000);
+
   screen.setup();
-  
-
-  navigator.setCurrentCoord(TEST2);
-  navigator.setTargetCoord(TEST1);
-
-  printCoord(Coordinate::add(Coordinate(23, 59, 1), Coordinate(1, 1, 1)));
-  printCoord(Coordinate::subtract(Coordinate(0, 0, 0), Coordinate(1, 1, 1)));
-
-  const Coordinate& c1 = navigator.getCurrentCoord();
-  const Coordinate& c2 = navigator.getTargetCoord();
+//
+//  printCoord(Coordinate::add(Coordinate(23, 59, 1), Coordinate(1, 1, 1)));
+//  printCoord(Coordinate::subtract(Coordinate(0, 0, 0), Coordinate(1, 1, 1)));
+//
+//  const Coordinate& c1 = navigator.getCurrentCoord();
+//  const Coordinate& c2 = navigator.getTargetCoord();
+//
+//  Serial.print("Current: ");
+//  printCoord(c1);
+//
+//  Serial.print("Target: ");
+//  printCoord(c2);
+//
+//  Serial.print("Delta: ");
+//  printCoord(Coordinate::getMinimumDelta(c1, c2));
 
   // Serial.println("Current: ");
   // Serial.println(c1.hours);
@@ -76,8 +88,8 @@ void setup() {
   // navigator.getTargetCoord();
 
   // navigator.trackTarget();
-
-  delay(2000);
+  
+  delay(5000);
   
 }
 
@@ -158,17 +170,16 @@ void configureTimers() {
 }
 
 void cycleRotate() {
-  motorController.enableMotor();
+  // motorController.enableMotor();
+  motorController.setDirection(MotorController::RA);
   motorController.stepMotor(300);
-  motorController.disableMotor();
-  
-  motorController.toggleDirection();
+  // motorController.disableMotor();
   delay(1000);
 
-  motorController.enableMotor();
+  motorController.setDirection(MotorController::ANTI_RA);
+  // motorController.enableMotor();
   motorController.stepMotor(300);
-  motorController.disableMotor();
-  motorController.toggleDirection();
+  // motorController.disableMotor();
 }
 
 int i = 1;
@@ -176,65 +187,66 @@ int i = 1;
 void loop() {
   if (i == 5) {
     Serial.println("Starting slew");
-    // navigator.slewToTarget();
+    navigator.slewToTarget();
     i = 501;
   } else if (i < 500) {
     i++;
   }
-  Event event = remote.checkForPress();
-  switch (event) {
-    case Event::START_MOTOR:
-      // motorController.enableMotor();
-      // screen.write("Enabling Motor");
-      navigator.slewToTarget();
-      break;
-    case Event::STOP_MOTOR:
-      motorController.disableMotor();
-      // screen.write("Disabling Motor");
-      navigator.disableNavigation();
-      break;
-    case Event::CHANGE_MOTOR_DIRECTION:
-      motorController.toggleDirection();
-      break;
-    case Event::SET_QUARTER_STEP:
-      motorController.setStepSize(2);
-      break;
-    case Event::SET_HALF_STEP:
-      motorController.setStepSize(1);
-      break;
-    case Event::SET_FULL_STEP:
-      motorController.setStepSize(0);
-      break;
-    case Event::INCREASE_EXPOSURE_TIME:
-      cameraController.increaseShutterTime();
-      break;
-    case Event::DECREASE_EXPOSURE_TIME:
-      cameraController.decreaseShutterTime();
-      break;
-    case Event::START_CAPTURING:
-      cameraController.enableCapturing();
-      break;
-    case Event::STOP_CAPTURING:
-      // cameraController.disableCapturing();
-      navigator.trackTarget();
-      break;      
-    case Event::BUTTON_HELD:
-//      Serial.println("Button held");
-      break;
-    case Event::UNKNOWN:
-      Serial.println("Unknown event");
-      break;
-    case Event::NONE:
-      break;
-  }
+//   Event event = remote.checkForPress();
+//   switch (event) {
+//     case Event::START_MOTOR:
+//       // motorController.enableMotor();
+//       // screen.write("Enabling Motor");
+//       navigator.slewToTarget();
+//       break;
+//     case Event::STOP_MOTOR:
+//       motorController.disableMotor();
+//       // screen.write("Disabling Motor");
+//       navigator.disableNavigation();
+//       break;
+//     case Event::CHANGE_MOTOR_DIRECTION:
+//       motorController.toggleDirection();
+//       break;
+//     case Event::SET_QUARTER_STEP:
+//       motorController.setStepSize(2);
+//       break;
+//     case Event::SET_HALF_STEP:
+//       motorController.setStepSize(1);
+//       break;
+//     case Event::SET_FULL_STEP:
+//       motorController.setStepSize(0);
+//       break;
+//     case Event::INCREASE_EXPOSURE_TIME:
+//       cameraController.increaseShutterTime();
+//       break;
+//     case Event::DECREASE_EXPOSURE_TIME:
+//       cameraController.decreaseShutterTime();
+//       break;
+//     case Event::START_CAPTURING:
+//       cameraController.enableCapturing();
+//       break;
+//     case Event::STOP_CAPTURING:
+//       // cameraController.disableCapturing();
+//       navigator.trackTarget();
+//       break;      
+//     case Event::BUTTON_HELD:
+// //      Serial.println("Button held");
+//       break;
+//     case Event::UNKNOWN:
+//       Serial.println("Unknown event");
+//       break;
+//     case Event::NONE:
+//       break;
+//   }
   
   navigator.moveIfNesc();
-  cameraController.shutterIfNesc();
+  // cameraController.shutterIfNesc();
 
-  // screen.writeCurrent();
-  // screen.writeTarget();
+  screen.writeCurrent();
+  screen.writeTarget();
   screen.update();
-  delay(500);
+  delay(10);
+  // cycleRotate();
 }
 
 
@@ -242,7 +254,7 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   // Reset timer1 to zero to consume interupt
   TCNT1 = T1_LOAD_VALUE;
-  cameraController.tick();
+  // cameraController.tick();
   tracker.tick();
   // Serial.println("Interupt");
 }

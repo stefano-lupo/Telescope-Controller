@@ -1,7 +1,18 @@
 #include "Tracker.h"
 
+void Tracker::startTracker() {
+  started = true;
+}
+
+void Tracker::stopTracker() {
+  started = false;
+}
 
 void Tracker::tick() {
+  if (!started) {
+    return;
+  }
+
   accumulatedTimeMillis += interruptPeriodMillis;
   if (accumulatedTimeMillis >= motorTickPeriodMillis) {
     movesNeeded++;

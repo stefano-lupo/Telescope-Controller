@@ -11,8 +11,8 @@ void Navigator::moveIfNesc() {
         motorController.setQuarterStep();
         motorController.stepMotor(movesNeeded);
         tracker.consumeMovesNeeded(movesNeeded);
-        // Serial.print("Tracking: Moved ");
-        // Serial.println(movesNeeded);
+         Serial.print("Tracking: Moved ");
+         Serial.println(movesNeeded);
       }
 
       break;
@@ -21,15 +21,27 @@ void Navigator::moveIfNesc() {
     case NavigatorState::SLEWING: {
       // Serial.println("Slewing");
 
-      Coordinate delta = Coordinate::subtract(targetCoord, currentCoord);
+      Serial.print("Had target of ");
+      char str2[16];
+      targetCoord.formatString(str2);
+      Serial.println(str2);
 
+      Serial.print("Had current of ");
+      char str3[16];
+      currentCoord.formatString(str3);
+      Serial.println(str3);
+
+      Coordinate delta = Coordinate::getMinimumDelta(currentCoord, targetCoord);
+      // Coordinate delta = Coordinate::getMinimumDelta(Coordinate(1, 1, 1), Coordinate(0, 0, 0));
+      // Coordinate delta = Coordinate::getMinimumDelta(Coordinate(0, 0, 0), Coordinate(1, 1, 1));
+      
       Serial.print("Had delta of ");
       char str[16];
       delta.formatString(str);
       Serial.println(str);
 
       if (delta.hours != 0) {
-        boolean sign = delta.hours > 0 ? 1 : - 1;
+        int sign = delta.hours > 0 ? 1 : - 1;
         int hoursToSlewThisTick = min(abs(delta.hours), Navigator::MAX_HOURS_SLEW_PER_TICK) * sign;
         slewHours(hoursToSlewThisTick);
         Serial.print("Slewed ");
@@ -85,14 +97,17 @@ const Coordinate& Navigator::getCurrentCoord() {
 
 void Navigator::slewToTarget() {
   state = NavigatorState::SLEWING;
+  tracker.startTracker();
 }
 
 void Navigator::trackTarget() {
   state = NavigatorState::TRACKING;
+  tracker.startTracker();
 }
 
 void Navigator::disableNavigation() {
   state = NavigatorState::IDLE;
+  tracker.stopTracker();
 }
 
 void Navigator::slewHours(int numHours) {

@@ -44,7 +44,7 @@ void MotorController::disableMotor() {
 void MotorController::setDirection(boolean direction) {
   direction = direction;
   digitalWrite(dirPin, direction);
-  Serial.println("Setting motor direction");
+  // Serial.println("Setting motor direction");
 }
 
 

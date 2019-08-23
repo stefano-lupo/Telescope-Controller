@@ -14,6 +14,9 @@ const Coordinate VEGA(18, 37, 36);
 const Coordinate ALTAIR(19, 51, 32);
 const Coordinate DENEB(20, 42, 7);
 const Coordinate ARCTURUS(14, 16, 34);
+const Coordinate NAVI(0, 56, 44);
+const Coordinate SHEDAR(0, 40, 32);
+const Coordinate DUBHE(11, 4, 52);
 
 const Coordinate TEST1(0, 0, 0);
 const Coordinate TEST2(1, 1, 1);

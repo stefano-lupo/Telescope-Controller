@@ -6,6 +6,7 @@ void Tracker::startTracker() {
 
 void Tracker::stopTracker() {
   started = false;
+  accumulatedTimeMillis = 0;
 }
 
 void Tracker::tick() {

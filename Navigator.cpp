@@ -57,7 +57,7 @@ void Navigator::moveIfNesc() {
         Serial.print("Slewed ");
         Serial.print(delta.seconds);
         Serial.println(" seconds");
-        state = NavigatorState::TRACKING;
+        trackTarget();
       }
 
 
@@ -102,7 +102,7 @@ void Navigator::slewToTarget() {
 
 void Navigator::trackTarget() {
   state = NavigatorState::TRACKING;
-  tracker.startTracker();
+  // tracker.startTracker();
 }
 
 void Navigator::disableNavigation() {

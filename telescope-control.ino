@@ -50,14 +50,11 @@ void setup() {
   screen.setup();
   remote.setup();
   motorController.setup();
-  // navigator.setup();
-  // cameraController.setup();
+  cameraController.setup();
 
-  // cameraController.setShutterTime(5000L);
-  // cameraController.enableCapturing();
-  // navigator.setCurrentCoord(Coordinate(0, 0, 0));
-  // navigator.setTargetCoord(Coordinate(5, 30, 30));
-  navigator.trackTarget();
+  cameraController.setShutterTime(5000L);
+  navigator.setCurrentCoord(Coordinate(0, 0, 0));
+  navigator.setTargetCoord(Coordinate(3, 30, 30));
 }
 
 void printCoord(Coordinate c) {
@@ -184,16 +181,16 @@ void pollRemote() {
       break;
   
     case Event::INCREASE_EXPOSURE_TIME:
-      // cameraController.increaseShutterTime();
+      cameraController.increaseShutterTime();
       break;
     case Event::DECREASE_EXPOSURE_TIME:
-      // cameraController.decreaseShutterTime();
+      cameraController.decreaseShutterTime();
       break;
     case Event::START_CAPTURING:
-      // cameraController.enableCapturing();
+      cameraController.enableCapturing();
       break;
     case Event::STOP_CAPTURING:
-      // cameraController.disableCapturing();
+      cameraController.disableCapturing();
       break;
 
     case Event::TOGGLE_BOTTOM_ROW:
@@ -204,9 +201,9 @@ void pollRemote() {
       navigator.nextTrackingConfig();
       break;
 
-    // case Event::MOTOR_TEST:
-    //   cycleRotate();
-    //   break;
+    case Event::MOTOR_TEST:
+      cycleRotate();
+      break;
 
     case Event::BUTTON_HELD:
       break;
@@ -217,17 +214,14 @@ void pollRemote() {
   }
 }
 
-
 void loop() {
   pollRemote();
 
   navigator.moveIfNesc();
-  // cameraController.shutterIfNesc();
-
+  cameraController.shutterIfNesc();
   screen.update();
 
   delay(10);
-
 }
 
 
@@ -235,7 +229,7 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   // Reset timer1 to zero to consume interupt
   TCNT1 = T1_LOAD_VALUE;
-  // cameraController.tick();
+  cameraController.tick();
   tracker.tick();
   // Serial.println("Interupt");
 }

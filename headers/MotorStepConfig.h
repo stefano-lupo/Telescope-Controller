@@ -11,5 +11,5 @@ namespace MotorStepConfigs {
   static const MotorStepConfig HALF_STEP(HIGH, LOW, LOW);
   static const MotorStepConfig QUARTER_STEP(LOW, HIGH, LOW);
   static const MotorStepConfig EIGHTH_STEP(HIGH, HIGH, LOW);
-  static const MotorStepConfig SIZTEENTH_STEP(HIGH, HIGH, HIGH);
+  static const MotorStepConfig SIXTEENTH_STEP(HIGH, HIGH, HIGH);
 }

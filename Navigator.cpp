@@ -2,12 +2,16 @@
 
 void Navigator::nextTrackingConfig() {
   if (trackingConfig == &TrackingConfigs::FULL_STEP) {
-      return TrackingConfigs::HALF_STEP;
-  }
-  else if (trackingConfig == &TrackingConfigs::HALF_STEP){
-      return TrackingConfigs::QUARTER_STEP;
+      Serial.println("Full to half");
+      setTrackingConfig(&TrackingConfigs::HALF_STEP);
+  } else if (trackingConfig == &TrackingConfigs::HALF_STEP){
+      setTrackingConfig(&TrackingConfigs::QUARTER_STEP);
+      Serial.println("Half to quart");
   } else {
-      return TrackingConfigs::FULL_STEP;
+      setTrackingConfig(&TrackingConfigs::FULL_STEP);
+      Serial.println("Quart to full");
+  } else {
+    Serial.println("Unsure how to get to next config")
   }
 }
 
@@ -207,5 +211,5 @@ char Navigator::getEncodedNavigationState() {
 }
 
 char Navigator::getEncodedTrackingConfig() {
-  return 'x';
+  return trackingConfig->encodedConfig;
 }

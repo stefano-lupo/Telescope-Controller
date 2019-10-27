@@ -7,11 +7,11 @@ void Navigator::nextTrackingConfig() {
   } else if (trackingConfig == &TrackingConfigs::HALF_STEP){
       setTrackingConfig(&TrackingConfigs::QUARTER_STEP);
       Serial.println("Half to quart");
-  } else {
+  } else if (trackingConfig == &TrackingConfigs::QUARTER_STEP) {
       setTrackingConfig(&TrackingConfigs::FULL_STEP);
       Serial.println("Quart to full");
   } else {
-    Serial.println("Unsure how to get to next config")
+    Serial.println("Unsure how to get to next config");
   }
 }
 

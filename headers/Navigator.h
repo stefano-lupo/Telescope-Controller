@@ -21,7 +21,8 @@ const Coordinate ARCTURUS(14, 16, 34);
 const Coordinate NAVI(0, 56, 44);
 const Coordinate SHEDAR(0, 40, 32);
 const Coordinate DUBHE(11, 4, 52);
-const Coordinate ANDROMEDA(0, 43, 50);
+const Coordinate MIRACH(1, 10, 52);
+const Coordinate ANDROMEDA(0, 43, 51);
 
 class Navigator {
     public:

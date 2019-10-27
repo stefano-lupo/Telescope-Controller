@@ -53,8 +53,8 @@ void setup() {
   cameraController.setup();
 
   cameraController.setShutterTime(5000L);
-  navigator.setCurrentCoord(Coordinate(0, 0, 0));
-  navigator.setTargetCoord(Coordinate(3, 30, 30));
+  navigator.setCurrentCoord(MIRACH);
+  navigator.setTargetCoord(ANDROMEDA);
 }
 
 void printCoord(Coordinate c) {

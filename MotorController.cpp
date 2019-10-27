@@ -2,14 +2,6 @@
 
 #include ".\headers\MotorController.h"
 
-const int MotorController::ENCODED_STEP_SIZES[5][3] = {
-  {LOW, LOW, LOW},    // Full
-  {HIGH, LOW, LOW},   // Half
-  {LOW, HIGH, LOW},   // Quarter
-  {HIGH, HIGH, LOW},  // Eighth    
-  {HIGH, HIGH, HIGH}  // Sixteenth
-};
-
 void MotorController::setup() {
     pinMode(sleepPin, OUTPUT);
     pinMode(stepPin, OUTPUT);
@@ -20,7 +12,7 @@ void MotorController::setup() {
     
     digitalWrite(dirPin, direction);
     digitalWrite(sleepPin, active);
-    setStepSize(stepSizeIndex);
+    setStepSize(MotorStepConfigs::FULL_STEP);
     disableMotor();
 }
 
@@ -44,29 +36,13 @@ void MotorController::disableMotor() {
 void MotorController::setDirection(boolean direction) {
   this->direction = direction;
   digitalWrite(dirPin, direction);
-  // Serial.println("Setting motor direction");
 }
 
-void MotorController::setFullStep() {
-  setStepSize(0);
+void MotorController::setStepSize(const MotorStepConfig& config) {
+  digitalWrite(ms1, config.ms1);
+  digitalWrite(ms2, config.ms3);
+  digitalWrite(ms3, config.ms2);
 }
-
-void MotorController::setHalfStep() {
-  setStepSize(1);
-}
-
-void MotorController::setQuarterStep() {
-  setStepSize(2);
-}
-
-void MotorController::setStepSize(int stepSizeIndex) {
-  this->stepSizeIndex = stepSizeIndex;
-  int* encodedStepSize = MotorController::ENCODED_STEP_SIZES[stepSizeIndex];
-  digitalWrite(ms1, encodedStepSize[0]);
-  digitalWrite(ms2, encodedStepSize[1]);
-  digitalWrite(ms3, encodedStepSize[2]);
-}
-
 
 void MotorController::stepMotor() {
   digitalWrite(stepPin, HIGH);

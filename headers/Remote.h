@@ -4,8 +4,6 @@
 #include "Event.h"
 #include "ButtonEventMapping.h"
 
-#define x = 1;
-
 class Remote {
     public:
         // Remote(int pin);

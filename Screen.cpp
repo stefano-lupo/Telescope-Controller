@@ -40,7 +40,7 @@ void Screen::writeCameraState() {
 void Screen::writeState() {
   bottomRow[11] = ' ';
   bottomRow[12] = ' ';
-  bottomRow[13] = ' ';
+  bottomRow[13] = navigator.getEncodedTrackingConfig();
   bottomRow[14] = ' ';
   bottomRow[15] = navigator.getEncodedNavigationState();
 }

@@ -14,9 +14,11 @@ class CameraController {
         void toggleShutter();
         void increaseShutterTime();
         void decreaseShutterTime();
+        void snapShot();
         void setShutterTime(int shutterTimeMillis);
         void shutterIfNesc();
         void tick();
+        void formatString(char* str);
     
     private:
         int irPin, interuptPeriodMillis;

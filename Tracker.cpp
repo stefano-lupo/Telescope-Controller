@@ -1,7 +1,12 @@
 #include "Tracker.h"
 
+void Tracker::setMotorTickPeriodMillis(int motorTickPeriodMillis) {
+  this->motorTickPeriodMillis = motorTickPeriodMillis;
+}
+
 void Tracker::startTracker() {
   started = true;
+  numberOfTicks = 0;
 }
 
 void Tracker::stopTracker() {
@@ -35,4 +40,9 @@ int Tracker::getAccumulatedTimeMillis() {
 
 void Tracker::consumeMovesNeeded(int movesNeeded) {
   this->movesNeeded -= movesNeeded;
+  this->numberOfTicks += movesNeeded;
+}
+
+int Tracker::getNumberOfTicks() {
+  return numberOfTicks;
 }

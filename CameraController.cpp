@@ -56,3 +56,16 @@ void CameraController::decreaseShutterTime() {
 void CameraController::setShutterTime(int shutterTimeMillis) {
   this->shutterTimeMillis = shutterTimeMillis;
 }
+
+void CameraController::formatString(char* str) {
+  int remainingTime = (shutterTimeMillis - accumulatedTimeMillis) / 1000;
+  // Serial.print("Reminaing ");
+  // Serial.println(remainingTime);
+  char activeChar = active ? 'A' : 'I';
+  int shutterTime = shutterTimeMillis / 1000;
+  sprintf(str, "Cam %c %ds %ds", activeChar, shutterTime, remainingTime);
+}
+
+void CameraController::snapShot() {
+  toggleShutter();
+}

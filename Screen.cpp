@@ -11,18 +11,13 @@ void Screen::update() {
   // lcd.clear();
   clearRows();
   writeCurrent();
-  writeTarget();
-  writeState();
-  // Serial.println(bottomRow);
-  // bottomRow[11] = navigator.getEncodedState();
-  // bottomRow[12] = navigator.getEncodedState();
-  // bottomRow[13] = navigator.getEncodedState();
-  // // bottomRow[14] = navigator.getEncodedState();
-  // bottomRow[15] = navigator.getEncodedState();
-  // Serial.println(navigator.getEncodedState());
-  // Serial.println(bottomRow);
-  // Serial.println();
+  if (bottomRowFlag) {
+    writeCameraState();
+  } else {
+    writeTarget();
+  }
 
+  writeState();
   lcd.setCursor(0, 0);
   lcd.print(topRow);
   
@@ -30,21 +25,16 @@ void Screen::update() {
   lcd.print(bottomRow);
 }
 
-
-// void Screen::writeTop(String& str) {
-//   sprintf(topRow, str);
-// }
-
-// void Screen::writeBottom(String& str) {
-//   sprintf(bottomRow, str);
-// }
-
 void Screen::writeCurrent() {
-  navigator.getCurrentCoord().formatString(topRow);
+  navigator.getCurrentCoord().formatString(bottomRow);
 }
 
 void Screen::writeTarget() {
-  navigator.getTargetCoord().formatString(bottomRow);
+  navigator.getTargetCoord().formatString(topRow);
+}
+
+void Screen::writeCameraState() {
+  cameraController.formatString(topRow);
 }
 
 void Screen::writeState() {
@@ -52,7 +42,7 @@ void Screen::writeState() {
   bottomRow[12] = ' ';
   bottomRow[13] = ' ';
   bottomRow[14] = ' ';
-  bottomRow[15] = navigator.getEncodedState();
+  bottomRow[15] = navigator.getEncodedNavigationState();
 }
 
 void Screen::clearRows() {
@@ -60,4 +50,12 @@ void Screen::clearRows() {
     bottomRow[i] = ' ';
     topRow[i] = ' ';
   }
+}
+
+void Screen::toggleBottomRow() {
+  bottomRowFlag = !bottomRowFlag;
+}
+
+void Screen::toggleTopRow() {
+  topRowFlag = !topRowFlag;
 }

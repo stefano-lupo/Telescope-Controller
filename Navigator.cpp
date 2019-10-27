@@ -1,26 +1,58 @@
 #include "Navigator.h"
 
+void Navigator::setup() {
+  setTrackingConfig(1);
+}
+
+void Navigator::nextTrackingConfig() {
+  disableNavigation();
+  int nextTrackingConfig = this->trackingConfig * 2;
+  if (nextTrackingConfig > 4) {
+    nextTrackingConfig = 1;
+  }
+
+  setTrackingConfig(nextTrackingConfig);
+}
+
+void Navigator::setTrackingConfig(int trackingConfig) {
+  Serial.print("Updaing tracking config to: ");
+  Serial.println(trackingConfig);
+  this->trackingConfig = trackingConfig;
+  if (trackingConfig == 1) {
+    motorController.setFullStep();
+    tracker.setMotorTickPeriodMillis(3000);
+  } else if (trackingConfig == 2) {
+    motorController.setHalfStep();
+    tracker.setMotorTickPeriodMillis(1500);
+  } else {
+    motorController.setQuarterStep();
+    tracker.setMotorTickPeriodMillis(750);
+  }
+}
+
 void Navigator::moveIfNesc() {
+  // if (cooldownCounter > 0) {
+  //   Serial.println("Cooling down");
+  //   cooldownCounter--;
+  //   return;
+  // }
+
   switch (state) {
     case NavigatorState::TRACKING: {
-      // Serial.println("Tracking");
       int movesNeeded = tracker.getMovesNeeded();
-      int accumTime = tracker.getAccumulatedTimeMillis();
       if (movesNeeded > 0) {
         motorController.setDirection(MotorController::RA);
-        motorController.setQuarterStep();
         motorController.stepMotor(movesNeeded);
         tracker.consumeMovesNeeded(movesNeeded);
-         Serial.print("Tracking: Moved ");
-         Serial.println(movesNeeded);
+        Serial.print("Tracking: Moved ");
+        Serial.println(movesNeeded);
       }
 
       break;
     }
 
+    /* This is fairly brittle at the moment */
     case NavigatorState::SLEWING: {
-      // Serial.println("Slewing");
-
       Serial.print("Had target of ");
       char str2[16];
       targetCoord.formatString(str2);
@@ -32,8 +64,6 @@ void Navigator::moveIfNesc() {
       Serial.println(str3);
 
       Coordinate delta = Coordinate::getMinimumDelta(currentCoord, targetCoord);
-      // Coordinate delta = Coordinate::getMinimumDelta(Coordinate(1, 1, 1), Coordinate(0, 0, 0));
-      // Coordinate delta = Coordinate::getMinimumDelta(Coordinate(0, 0, 0), Coordinate(1, 1, 1));
       
       Serial.print("Had delta of ");
       char str[16];
@@ -44,6 +74,12 @@ void Navigator::moveIfNesc() {
         int sign = delta.hours > 0 ? 1 : - 1;
         int hoursToSlewThisTick = min(abs(delta.hours), Navigator::MAX_HOURS_SLEW_PER_TICK) * sign;
         slewHours(hoursToSlewThisTick);
+
+        // Only start the cooldown once finished slewing hours
+        if (hoursToSlewThisTick == delta.hours) {
+          startCooldown();
+        }
+
         Serial.print("Slewed ");
         Serial.print(hoursToSlewThisTick);
         Serial.println(" hours");
@@ -52,12 +88,14 @@ void Navigator::moveIfNesc() {
         Serial.print("Slewed ");
         Serial.print(delta.minutes);
         Serial.println(" minutes");
+        startCooldown();
       } else {
         slewSeconds(delta.seconds);
         Serial.print("Slewed ");
         Serial.print(delta.seconds);
         Serial.println(" seconds");
         trackTarget();
+        startCooldown();
       }
 
 
@@ -65,7 +103,6 @@ void Navigator::moveIfNesc() {
     }
 
     case NavigatorState::IDLE: {
-      // Serial.println("Idle");
       break;
     }
 
@@ -102,37 +139,51 @@ void Navigator::slewToTarget() {
 
 void Navigator::trackTarget() {
   state = NavigatorState::TRACKING;
-  // tracker.startTracker();
+  tracker.startTracker();
 }
 
 void Navigator::disableNavigation() {
   state = NavigatorState::IDLE;
   tracker.stopTracker();
+  motorController.disableMotor();
 }
 
 void Navigator::slewHours(int numHours) {
   boolean direction = getDirectionFromDelta(numHours);
-  motorController.setFullStep();
-  slew(direction, numHours * NUM_FULL_STEPS_IN_HOUR);
+  if (useFullSteps) {
+    motorController.setFullStep();
+    slew(direction, numHours * NUM_FULL_STEPS_IN_HOUR);
+  } else {
+    motorController.setHalfStep();
+    slew(direction, numHours * NUM_HALF_STEPS_IN_HOUR);
+  }
   currentCoord.addHours(numHours);
 }
 
 void Navigator::slewMinutes(int numMinutes) {
   boolean direction = getDirectionFromDelta(numMinutes);
-  motorController.setFullStep();
-  slew(direction, numMinutes * NUM_FULL_STEPS_IN_MINUTE);
+  // motorController.setFullStep();
+  // slew(direction, numMinutes * NUM_FULL_STEPS_IN_MINUTE);
+    motorController.setHalfStep();
+  slew(direction, numMinutes * NUM_HALF_STEPS_IN_MINUTE);
+
   currentCoord.addMinutes(numMinutes);
 }
 
 void Navigator::slewSeconds(int deltaSeconds) {
   boolean direction = getDirectionFromDelta(deltaSeconds);
 
-  int numFullSteps = abs(deltaSeconds) / SECONDS_PER_FULL_STEP;
-  motorController.setFullStep();
-  slew(direction, numFullSteps);
+  // int numFullSteps = abs(deltaSeconds) / SECONDS_PER_FULL_STEP;
+  // motorController.setFullStep();
+  // slew(direction, numFullSteps);
+
+  int numHalfSteps = abs(deltaSeconds) / (SECONDS_PER_FULL_STEP / 2);
+  motorController.setHalfStep();
+  slew(direction, numHalfSteps);
 
   // Within 3 seconds at this point
-  byte remainingSeconds = abs(deltaSeconds) - numFullSteps * SECONDS_PER_FULL_STEP;
+  // byte remainingSeconds = abs(deltaSeconds) - numFullSteps * SECONDS_PER_FULL_STEP;
+  byte remainingSeconds = abs(deltaSeconds) - numHalfSteps * (SECONDS_PER_FULL_STEP / 2);
   byte numQuarterSteps = remainingSeconds / (SECONDS_PER_FULL_STEP / 4);
   motorController.setQuarterStep();
   slew(direction, numQuarterSteps);
@@ -149,8 +200,12 @@ boolean Navigator::getDirectionFromDelta(int deltaValue) {
   return deltaValue > 0 ? MotorController::RA : MotorController::ANTI_RA;
 }
 
+void Navigator::startCooldown() {
+  Serial.println("Starting cooldown");
+  // cooldownCounter = DEFAULT_COOLDOWN_VALUE;
+}
 
-char Navigator::getEncodedState() {
+char Navigator::getEncodedNavigationState() {
   switch (state) {
     case NavigatorState::IDLE:
       return 'I';
@@ -158,5 +213,11 @@ char Navigator::getEncodedState() {
       return 'T';
     case NavigatorState::SLEWING:
       return 'S';
+  }
+}
+
+char Navigator::getEncodedTrackingConfig() {
+  switch (trackingConfig) {
+    case 
   }
 }

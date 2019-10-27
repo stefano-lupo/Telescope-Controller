@@ -3,25 +3,26 @@
 #include "Remote.h"
 #include "ButtonCode.h"
 
-const int NUM_ACTIVE_BUTTONS = 11;
+const int NUM_ACTIVE_BUTTONS = 12;
 
 // Maps / Dictionaries are not ideal for arduino so array search is better
 ButtonEventMapping* BUTTON_EVENTS[NUM_ACTIVE_BUTTONS] = {
-  new ButtonEventMapping(CH_MINUS, Event::STOP_MOTOR),
-  new ButtonEventMapping(CH, Event::CHANGE_MOTOR_DIRECTION),
+  new ButtonEventMapping(CH_MINUS, Event::STOP_SLEWING),
+  new ButtonEventMapping(CH, Event::STOP_TRACKING),
   new ButtonEventMapping(CH_PLUS, Event::STOP_CAPTURING),
 
   new ButtonEventMapping(PREV_TRACK, Event::DECREASE_EXPOSURE_TIME),
   new ButtonEventMapping(NEXT_TRACK, Event::INCREASE_EXPOSURE_TIME),
   new ButtonEventMapping(PLAY_PAUSE, Event::START_CAPTURING),
 
-//  new ButtonEventMapping(VOL_DOWN, Event::INCREASE_STEP_RATE),
-//  new ButtonEventMapping(VOL_UP, Event::DECREASE_STEP_RATE),
-  new ButtonEventMapping(EQ, Event::START_MOTOR),
+  new ButtonEventMapping(VOL_DOWN, Event::MOTOR_TEST),
+  new ButtonEventMapping(VOL_UP, Event::START_SLEWING),
+  new ButtonEventMapping(EQ, Event::START_TRACKING),
 
-  new ButtonEventMapping(ZERO, Event::SET_QUARTER_STEP),
-  new ButtonEventMapping(PLUS_100, Event::SET_HALF_STEP),
-  new ButtonEventMapping(PLUS_200, Event::SET_FULL_STEP),
+
+  // new ButtonEventMapping(ZERO, Event::SET_QUARTER_STEP),
+  new ButtonEventMapping(PLUS_100, Event::TOGGLE_BOTTOM_ROW),
+  new ButtonEventMapping(PLUS_200, Event::TOGGLE_TOP_ROW),
 
 //  new ButtonEventMapping(0xFFA25D, Event::DECREASE_EXPOSURE_TIME),
 //  new ButtonEventMapping(0xFFA25D, Event::DECREASE_EXPOSURE_TIME),

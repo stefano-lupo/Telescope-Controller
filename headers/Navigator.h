@@ -1,9 +1,9 @@
 #pragma once
 
-#include ".\headers\NavigatorState.h"
-#include ".\headers\MotorController.h"
-#include ".\headers\Coordinate.h"
-#include ".\headers\Tracker.h"
+#include "NavigatorState.h"
+#include "MotorController.h"
+#include "Coordinate.h"
+#include "Tracker.h"
 
 
 const int SECONDS_PER_FULL_STEP = 3;

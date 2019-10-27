@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Remote.h"
-#include "ButtonCode.h"
+#include ".\headers\Remote.h"
+#include ".\headers\ButtonCode.h"
 
 const int NUM_ACTIVE_BUTTONS = 12;
 

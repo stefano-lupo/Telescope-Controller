@@ -1,9 +1,9 @@
 #pragma once
 
 #include <IRremote.h>
-#include ".\headers\Event.h"
-#include ".\headers\ButtonEventMapping.h"
-#include ".\headers\Coordinate.h"
+#include "Event.h"
+#include "ButtonEventMapping.h"
+#include "Coordinate.h"
 
 
 

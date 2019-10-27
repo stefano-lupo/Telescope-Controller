@@ -28,10 +28,10 @@
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
-  #include "WProgram.h"
+  #include ".\headers\WProgram.h"
 #endif
 
-#include "multiCameraIrControl.h"
+#include ".\headers\multiCameraIrControl.h"
 
 void wait(unsigned int time){
   unsigned long start = micros();

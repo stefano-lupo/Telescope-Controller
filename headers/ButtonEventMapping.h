@@ -1,6 +1,6 @@
 #pragma once
 
-#include ".\headers\Event.h"
+#include "Event.h"
 
 class ButtonEventMapping {
     public:

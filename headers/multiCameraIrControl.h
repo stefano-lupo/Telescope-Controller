@@ -31,7 +31,7 @@
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
-  #include ".\headers\WProgram.h"
+  #include "WProgram.h"
 #endif
 
 class Nikon{

@@ -1,10 +1,10 @@
-#include "Remote.h"
-#include "MotorController.h"
-#include "CameraController.h"
-#include "Screen.h"
-#include "Coordinate.h"
-#include "Navigator.h"
-#include "Tracker.h"
+#include ".\headers\Remote.h"
+#include ".\headers\MotorController.h"
+#include ".\headers\CameraController.h"
+#include ".\headers\Screen.h"
+#include ".\headers\Coordinate.h"
+#include ".\headers\Navigator.h"
+#include ".\headers\Tracker.h"
 
 // Stepper pins
 const int DIR_PIN = 2;

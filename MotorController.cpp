@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MotorController.h"
+#include ".\headers\MotorController.h"
 
 const int MotorController::ENCODED_STEP_SIZES[5][3] = {
   {LOW, LOW, LOW},    // Full

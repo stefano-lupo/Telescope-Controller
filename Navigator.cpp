@@ -1,4 +1,4 @@
-#include "Navigator.h"
+#include ".\headers\Navigator.h"
 
 void Navigator::setup() {
   setTrackingConfig(1);
@@ -217,7 +217,5 @@ char Navigator::getEncodedNavigationState() {
 }
 
 char Navigator::getEncodedTrackingConfig() {
-  switch (trackingConfig) {
-    case 
-  }
+  return 'x';
 }

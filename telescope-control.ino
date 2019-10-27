@@ -4,25 +4,19 @@
 #include "Screen.h"
 #include "Coordinate.h"
 #include "Navigator.h"
+#include "Tracker.h"
 
 // Stepper pins
 const int DIR_PIN = 2;
 const int STEP_PIN = 3;
 const int SLEEP_PIN = 4;
-const int RESET_PIN = 4;
 const int MS3 = 6;
 const int MS2 = 7;
 const int MS1 = 8;
 
 // IR Pins
-const int REMOTE_PIN = A0;
+const int REMOTE_PIN = 11;
 const int IR_LED_PIN = 10;
-Remote remote(REMOTE_PIN);
-
-// Status LED Pins
-const int SETUP_LED_PIN = A7;
-const int MOTOR_LED_PIN = 11;
-const int CAPTURE_LED_PIN = 12;
 
 // Screen Pins
 const int SDA_PIN = A4;
@@ -37,28 +31,38 @@ const uint16_t T1_LOAD_VALUE = 0;
 const uint16_t T1_COMPARE_VALUE = EFFECTIVE_CLOCK_RATE * (INTERRUPT_PERIOD_MS / MILLISECONDS_PER_SECOND);
 
 // Instantiation
-MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, RESET_PIN, MS1, MS2, MS3, MOTOR_LED_PIN, INTERRUPT_PERIOD_MS);
-CameraController cameraController(IR_LED_PIN, CAPTURE_LED_PIN, INTERRUPT_PERIOD_MS);
-Screen screen(SDA_PIN, SCL_PIN);
+Remote remote(REMOTE_PIN);
+MotorController motorController(DIR_PIN, STEP_PIN, SLEEP_PIN, MS1, MS2, MS3);
+CameraController cameraController(IR_LED_PIN, INTERRUPT_PERIOD_MS);
+
+Tracker tracker(INTERRUPT_PERIOD_MS);
+Navigator navigator(motorController, tracker);
+Screen screen(navigator, cameraController);
 
 
 void setup() {
-  Serial.begin(115200);
-  pinMode(SETUP_LED_PIN, OUTPUT);
-  digitalWrite(SETUP_LED_PIN, HIGH);
-
+  Serial.begin(9600);
   Serial.println("Starting telescope controller");
 
   configureTimers();
 
+  screen.setup();
   remote.setup();
   motorController.setup();
-  cameraController.setup();
-  screen.setup();
+  navigator.setup();
+  // cameraController.setup();
 
-  delay(5000);
-  digitalWrite(SETUP_LED_PIN, LOW);
-  
+  // cameraController.setShutterTime(5000L);
+  // cameraController.enableCapturing();
+  // navigator.setCurrentCoord(Coordinate(0, 0, 0));
+  // navigator.setTargetCoord(Coordinate(5, 30, 30));
+  navigator.trackTarget();
+}
+
+void printCoord(Coordinate c) {
+  char str[16];
+  c.formatString(str);
+  Serial.println(str);
 }
 
 // Configure 16bit timer1 to count in milliseconds (@ 1KHz)
@@ -129,81 +133,100 @@ void configureTimers() {
 
   // Enable global interupts
   sei();
-
-//  delay(5000);
-//  Serial.print("Effective clock rate: ");
-//  Serial.println(EFFECTIVE_CLOCK_RATE);
-//
-//  Serial.print("Starting using an interrupt period of ");
-//  Serial.print(INTERRUPT_PERIOD_MS);
-//  Serial.println("ms");
-//
-//  Serial.print("Using compare value of ");
-//  Serial.println(T1_COMPARE_VALUE);
 }
 
 void cycleRotate() {
-  motorController.enableMotor();
-  motorController.stepMotor(300);
-  motorController.disableMotor();
-  
-  motorController.toggleDirection();
-  delay(2000);
+  long distance = 1500;
+  // motorController.setFullStep();
+ 
+  // motorController.enableMotor();
+  motorController.setDirection(MotorController::RA);
+  motorController.stepMotor(distance);
+  // motorController.disableMotor();
+  delay(1000);
 
-  motorController.enableMotor();
-  motorController.stepMotor(300);
-  motorController.disableMotor();
-  motorController.toggleDirection();
+  // motorController.enableMotor();
+  motorController.setDirection(MotorController::ANTI_RA);
+  motorController.stepMotor(distance);
+  // motorController.disableMotor();
+  delay(1000);
 }
 
-void loop() {
-  Event event = remote.checkForPress();
+void cycleRotateAllSizes() {
+  motorController.setFullStep();
+  cycleRotate();
+  delay(5000);
+
+  motorController.setHalfStep();
+  cycleRotate();
+  delay(5000);
+
+  motorController.setQuarterStep();
+  cycleRotate();
+  delay(5000);
+}
+
+
+void pollRemote() {
+ Event event = remote.checkForPress();
   switch (event) {
-    case Event::START_MOTOR:
-      motorController.enableMotor();
-      screen.write();
+    case Event::STOP_TRACKING:
+    case Event::STOP_SLEWING:
+      navigator.disableNavigation();
       break;
-    case Event::STOP_MOTOR:
-      motorController.disableMotor();
+    
+    case Event::START_TRACKING:
+      navigator.trackTarget();
       break;
-    case Event::CHANGE_MOTOR_DIRECTION:
-      motorController.toggleDirection();
+    case Event::START_SLEWING:
+      navigator.slewToTarget();
       break;
-    case Event::SET_QUARTER_STEP:
-      motorController.setStepSize(2);
-      break;
-    case Event::SET_HALF_STEP:
-      motorController.setStepSize(1);
-      break;
-    case Event::SET_FULL_STEP:
-      motorController.setStepSize(0);
-      break;
+  
     case Event::INCREASE_EXPOSURE_TIME:
-      cameraController.increaseShutterTime();
+      // cameraController.increaseShutterTime();
       break;
     case Event::DECREASE_EXPOSURE_TIME:
-      cameraController.decreaseShutterTime();
+      // cameraController.decreaseShutterTime();
       break;
     case Event::START_CAPTURING:
-      cameraController.enableCapturing();
+      // cameraController.enableCapturing();
       break;
     case Event::STOP_CAPTURING:
-      cameraController.disableCapturing();
-      break;      
+      // cameraController.disableCapturing();
+      break;
+
+    case Event::TOGGLE_BOTTOM_ROW:
+      screen.toggleBottomRow();
+      break;
+    case Event::TOGGLE_TOP_ROW:
+      // screen.toggleTopRow();
+      navigator.nextTrackingConfig();
+      break;
+
+    // case Event::MOTOR_TEST:
+    //   cycleRotate();
+    //   break;
+
     case Event::BUTTON_HELD:
-//      Serial.println("Button held");
       break;
     case Event::UNKNOWN:
-      Serial.println("Unknown event");
       break;
     case Event::NONE:
       break;
   }
-  
-  motorController.moveIfNesc();
-  cameraController.shutterIfNesc();
-//  cycleRotate();
-  delay(1);
+}
+
+
+void loop() {
+  pollRemote();
+
+  navigator.moveIfNesc();
+  // cameraController.shutterIfNesc();
+
+  screen.update();
+
+  delay(10);
+
 }
 
 
@@ -211,6 +234,7 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   // Reset timer1 to zero to consume interupt
   TCNT1 = T1_LOAD_VALUE;
-  cameraController.tick();
-  motorController.tick();
+  // cameraController.tick();
+  tracker.tick();
+  // Serial.println("Interupt");
 }

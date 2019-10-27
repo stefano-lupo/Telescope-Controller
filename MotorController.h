@@ -5,37 +5,42 @@
 #include "ButtonEventMapping.h"
 #include "Coordinate.h"
 
-const int DEFAULT_MOTOR_TICK_PERIOD_MS = 750;
+
 
 class MotorController {
   
     public:
-        MotorController(int dirPin, int stepPin, int sleepPin, int resetPin, int ms1, int ms2, int ms3, int ledPin, int interuptPeriodMillis): 
-          dirPin(dirPin), stepPin(stepPin), sleepPin(sleepPin), resetPin(resetPin), ms1(ms1), ms2(ms2), ms3(ms3), ledPin(ledPin), interuptPeriodMillis(interuptPeriodMillis) {};
+        MotorController(int dirPin, int stepPin, int sleepPin, int ms1, int ms2, int ms3): 
+          dirPin(dirPin), stepPin(stepPin), sleepPin(sleepPin), ms1(ms1), ms2(ms2), ms3(ms3) {};
+        
+        const static boolean RA = 1;
+        const static boolean ANTI_RA = 0;
+
         void setup();
-        void toggleMotor();
+       
         void enableMotor();
         void disableMotor();
-        void toggleDirection();
-        void increaseSpeed();
-        void decreaseSpeed();
+
+        void setDirection(boolean direction);
+
         void nextStepSize();
         void setStepSize(int stepSizeIndex);
-        void stepMotor();
+        void setFullStep();
+        void setHalfStep();
+        void setQuarterStep();
+
         void stepMotor(int numSteps);
-        void tick();
-        void moveIfNesc();
     
     private:
-        static const int TIME_CHANGE = 5;
-        static const int ENCODED_STEP_SIZES[5][3];
-        static const int STEP_PULSE_TIME_MICRO = 500;
+        const static int ENCODED_STEP_SIZES[5][3];
+        const static int STEP_PULSE_TIME_MICRO = 500;
 
-        int dirPin, stepPin, sleepPin, resetPin, ms1, ms2, ms3, ledPin;
+        int dirPin, stepPin, sleepPin, ms1, ms2, ms3;
     
-        boolean active = true;
-        boolean direction = 1;
-        int stepSizeIndex = 2;
-        int interuptPeriodMillis, accumulatedTimeMillis = 0, motorTickPeriodMillis = DEFAULT_MOTOR_TICK_PERIOD_MS;
-        boolean needsMove = false;
+        boolean active = false;
+        boolean direction = RA;
+        int stepSizeIndex = 0;
+
+        void writeMotorState();
+        void stepMotor();
 };

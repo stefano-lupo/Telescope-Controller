@@ -3,30 +3,24 @@
 #include "CameraController.h"
 
 void CameraController::setup() {
-  pinMode(this->ledPin, OUTPUT);
-  digitalWrite(this->ledPin, this->active);
 }
 
 void CameraController::enableCapturing() {
   Serial.println("Enabling capturing!");
   this->active = true;
   this->accumulatedTimeMillis = 0;
-  digitalWrite(this->ledPin, this->active);
 }
 
 void CameraController::disableCapturing() {
   Serial.println("Disabling capturing!");
   this->active = false;
-  digitalWrite(this->ledPin, this->active);
 }
 
 
 void CameraController::toggleShutter() {
     Serial.println("Toggling Shutter");
-    digitalWrite(this->ledPin, HIGH);
     this->camera.shutterNow();
     Serial.println("Finished toggling Shutter");
-    digitalWrite(this->ledPin, LOW);
 }
 
 void CameraController::shutterIfNesc() {
@@ -61,4 +55,17 @@ void CameraController::decreaseShutterTime() {
 
 void CameraController::setShutterTime(int shutterTimeMillis) {
   this->shutterTimeMillis = shutterTimeMillis;
+}
+
+void CameraController::formatString(char* str) {
+  int remainingTime = (shutterTimeMillis - accumulatedTimeMillis) / 1000;
+  // Serial.print("Reminaing ");
+  // Serial.println(remainingTime);
+  char activeChar = active ? 'A' : 'I';
+  int shutterTime = shutterTimeMillis / 1000;
+  sprintf(str, "Cam %c %ds %ds", activeChar, shutterTime, remainingTime);
+}
+
+void CameraController::snapShot() {
+  toggleShutter();
 }

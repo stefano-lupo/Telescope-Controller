@@ -4,6 +4,7 @@
 #include "MotorController.h"
 #include "Coordinate.h"
 #include "Tracker.h"
+#include "TrackingConfig.h"
 
 
 const int SECONDS_PER_FULL_STEP = 3;
@@ -24,9 +25,12 @@ const Coordinate ANDROMEDA(0, 43, 50);
 
 class Navigator {
     public:
-        Navigator(const MotorController& motorController, const Tracker& tracker): motorController(motorController), tracker(tracker) {};
+        Navigator(const MotorController& motorController, const Tracker& tracker): 
+            motorController(motorController), 
+            tracker(tracker) {};
         void setCurrentCoord(const Coordinate&);
         void setTargetCoord(const Coordinate&);
+        void setTrackingConfig(const TrackingConfig*);
         const Coordinate& getCurrentCoord();
         const Coordinate& getTargetCoord();
         char getEncodedNavigationState();
@@ -38,9 +42,8 @@ class Navigator {
         void slewToTarget();
         void trackTarget();
         void disableNavigation();
-        void setTrackingConfig(int config);
+      
         void nextTrackingConfig();
-        void setup();
     
     private:
         const static uint8_t MAX_HOURS_SLEW_PER_TICK = 1;
@@ -54,12 +57,13 @@ class Navigator {
    
 
         NavigatorState state = NavigatorState::IDLE;
-        unsigned short missedTicks = 0;
+        TrackingConfig* trackingConfig = &TrackingConfigs::FULL_STEP;
         const MotorController& motorController;
         const Tracker& tracker;
+
+        unsigned short missedTicks = 0;
         Coordinate currentCoord;
         Coordinate targetCoord;
         uint8_t cooldownCounter = 0;
         bool useFullSteps = true;
-        int trackingConfig = 1;
 };

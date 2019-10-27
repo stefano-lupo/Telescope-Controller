@@ -5,6 +5,7 @@
 #include ".\headers\Coordinate.h"
 #include ".\headers\Navigator.h"
 #include ".\headers\Tracker.h"
+#include ".\headers\MotorStepConfig.h"
 
 // Stepper pins
 const int DIR_PIN = 2;
@@ -49,7 +50,7 @@ void setup() {
   screen.setup();
   remote.setup();
   motorController.setup();
-  navigator.setup();
+  // navigator.setup();
   // cameraController.setup();
 
   // cameraController.setShutterTime(5000L);
@@ -153,15 +154,15 @@ void cycleRotate() {
 }
 
 void cycleRotateAllSizes() {
-  motorController.setFullStep();
+  motorController.setStepSize(MotorStepConfigs::FULL_STEP);
   cycleRotate();
   delay(5000);
 
-  motorController.setHalfStep();
+  motorController.setStepSize(MotorStepConfigs::HALF_STEP);
   cycleRotate();
   delay(5000);
 
-  motorController.setQuarterStep();
+  motorController.setStepSize(MotorStepConfigs::QUARTER_STEP);
   cycleRotate();
   delay(5000);
 }

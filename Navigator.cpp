@@ -1,34 +1,23 @@
 #include ".\headers\Navigator.h"
 
-void Navigator::setup() {
-  setTrackingConfig(1);
-}
-
 void Navigator::nextTrackingConfig() {
-  disableNavigation();
-  int nextTrackingConfig = this->trackingConfig * 2;
-  if (nextTrackingConfig > 4) {
-    nextTrackingConfig = 1;
+  if (trackingConfig == &TrackingConfigs::FULL_STEP) {
+      return TrackingConfigs::HALF_STEP;
   }
-
-  setTrackingConfig(nextTrackingConfig);
-}
-
-void Navigator::setTrackingConfig(int trackingConfig) {
-  Serial.print("Updaing tracking config to: ");
-  Serial.println(trackingConfig);
-  this->trackingConfig = trackingConfig;
-  if (trackingConfig == 1) {
-    motorController.setFullStep();
-    tracker.setMotorTickPeriodMillis(3000);
-  } else if (trackingConfig == 2) {
-    motorController.setHalfStep();
-    tracker.setMotorTickPeriodMillis(1500);
+  else if (trackingConfig == &TrackingConfigs::HALF_STEP){
+      return TrackingConfigs::QUARTER_STEP;
   } else {
-    motorController.setQuarterStep();
-    tracker.setMotorTickPeriodMillis(750);
+      return TrackingConfigs::FULL_STEP;
   }
 }
+
+void Navigator::setTrackingConfig(const TrackingConfig* newConfig) {
+  disableNavigation();
+  trackingConfig = newConfig;
+  motorController.setStepSize(trackingConfig->motorStepConfig);
+  tracker.setMotorTickPeriodMillis(trackingConfig->tickPeriodMillis);
+}
+
 
 void Navigator::moveIfNesc() {
   // if (cooldownCounter > 0) {
@@ -40,6 +29,7 @@ void Navigator::moveIfNesc() {
   switch (state) {
     case NavigatorState::TRACKING: {
       int movesNeeded = tracker.getMovesNeeded();
+      
       if (movesNeeded > 0) {
         motorController.setDirection(MotorController::RA);
         motorController.stepMotor(movesNeeded);
@@ -151,10 +141,10 @@ void Navigator::disableNavigation() {
 void Navigator::slewHours(int numHours) {
   boolean direction = getDirectionFromDelta(numHours);
   if (useFullSteps) {
-    motorController.setFullStep();
+    motorController.setStepSize(MotorStepConfigs::FULL_STEP);
     slew(direction, numHours * NUM_FULL_STEPS_IN_HOUR);
   } else {
-    motorController.setHalfStep();
+    motorController.setStepSize(MotorStepConfigs::HALF_STEP);
     slew(direction, numHours * NUM_HALF_STEPS_IN_HOUR);
   }
   currentCoord.addHours(numHours);
@@ -164,7 +154,7 @@ void Navigator::slewMinutes(int numMinutes) {
   boolean direction = getDirectionFromDelta(numMinutes);
   // motorController.setFullStep();
   // slew(direction, numMinutes * NUM_FULL_STEPS_IN_MINUTE);
-    motorController.setHalfStep();
+  motorController.setStepSize(MotorStepConfigs::HALF_STEP);
   slew(direction, numMinutes * NUM_HALF_STEPS_IN_MINUTE);
 
   currentCoord.addMinutes(numMinutes);
@@ -178,14 +168,14 @@ void Navigator::slewSeconds(int deltaSeconds) {
   // slew(direction, numFullSteps);
 
   int numHalfSteps = abs(deltaSeconds) / (SECONDS_PER_FULL_STEP / 2);
-  motorController.setHalfStep();
+  motorController.setStepSize(MotorStepConfigs::HALF_STEP);
   slew(direction, numHalfSteps);
 
   // Within 3 seconds at this point
   // byte remainingSeconds = abs(deltaSeconds) - numFullSteps * SECONDS_PER_FULL_STEP;
   byte remainingSeconds = abs(deltaSeconds) - numHalfSteps * (SECONDS_PER_FULL_STEP / 2);
   byte numQuarterSteps = remainingSeconds / (SECONDS_PER_FULL_STEP / 4);
-  motorController.setQuarterStep();
+  motorController.setStepSize(MotorStepConfigs::QUARTER_STEP);
   slew(direction, numQuarterSteps);
 
   currentCoord.addSeconds(deltaSeconds);

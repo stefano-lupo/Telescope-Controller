@@ -7,50 +7,55 @@ void CameraController::setup() {
 
 void CameraController::enableCapturing() {
   Serial.println("Enabling capturing!");
-  this->active = true;
-  this->accumulatedTimeMillis = 0;
+  active = true;
+  accumulatedTimeMillis = 0;
 }
 
 void CameraController::disableCapturing() {
   Serial.println("Disabling capturing!");
-  this->active = false;
+  active = false;
 }
 
 
 void CameraController::toggleShutter() {
     Serial.println("Toggling Shutter");
-    this->camera.shutterNow();
+    camera.shutterNow();
     Serial.println("Finished toggling Shutter");
 }
 
 void CameraController::shutterIfNesc() {
-  if (this->hasShutterToggle) {
-    this->toggleShutter();
-    this->hasShutterToggle = false;
+  if (hasShutterToggle) {
+    toggleShutter();
+    hasShutterToggle = false;
   }
 }
 
 void CameraController::tick() {
-  if (!this->active) {
+  if (active) {
     return;
   }
-  this->accumulatedTimeMillis += this->interuptPeriodMillis;
-  if (this->accumulatedTimeMillis >= this->shutterTimeMillis) {
-    this->hasShutterToggle = true;
-    this->accumulatedTimeMillis -= this->shutterTimeMillis;
+
+  // Toggle shutter on start
+  if (accumulatedTimeMillis == 0) {
+    hasShutterToggle = true;
+  }
+
+  accumulatedTimeMillis += interuptPeriodMillis;
+  if (accumulatedTimeMillis >= shutterTimeMillis) {
+    hasShutterToggle = true;
+    accumulatedTimeMillis -= (shutterTimeMillis + cooldownPeriodMillis);
   }
 }
 
 void CameraController::increaseShutterTime() {
-  this->shutterTimeMillis += SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS;
-//  Serial.print("New shutterTime  (ms): ");
-//  Serial.println(this->shutterTimeMillis);
+  shutterTimeMillis += SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS;
+
 }
 
 void CameraController::decreaseShutterTime() {
-  this->shutterTimeMillis = max(0, this->shutterTimeMillis - SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS);
+  shutterTimeMillis = max(0, shutterTimeMillis - SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS);
 //  Serial.print("New shutterTime  (ms): ");
-//  Serial.println(this->shutterTimeMillis);
+//  Serial.println(shutterTimeMillis);
 }
 
 void CameraController::setShutterTime(int shutterTimeMillis) {

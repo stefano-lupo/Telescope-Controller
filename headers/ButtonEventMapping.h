@@ -4,7 +4,7 @@
 
 class ButtonEventMapping {
     public:
-        ButtonEventMapping(unsigned long keyCode, Event event): _keyCode(keyCode), _event(event) {};
-        unsigned long _keyCode;
-        Event _event;
+        ButtonEventMapping(unsigned long keyCode, Event event): keyCode(keyCode), event(event) {};
+        unsigned long keyCode;
+        Event event;
 };

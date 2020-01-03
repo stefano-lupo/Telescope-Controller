@@ -29,11 +29,12 @@ class Navigator {
         Navigator(const MotorController& motorController, const Tracker& tracker): 
             motorController(motorController), 
             tracker(tracker) {};
+        
+        const Coordinate& getCurrentCoord();
         void setCurrentCoord(const Coordinate&);
+        const Coordinate& getTargetCoord();
         void setTargetCoord(const Coordinate&);
         void setTrackingConfig(const TrackingConfig*);
-        const Coordinate& getCurrentCoord();
-        const Coordinate& getTargetCoord();
         char getEncodedNavigationState();
         char getEncodedTrackingConfig();
         
@@ -43,8 +44,8 @@ class Navigator {
         void slewToTarget();
         void trackTarget();
         void disableNavigation();
-      
         void nextTrackingConfig();
+        void manualSlew(int);
     
     private:
         const static uint8_t MAX_HOURS_SLEW_PER_TICK = 1;
@@ -61,8 +62,6 @@ class Navigator {
         TrackingConfig* trackingConfig = &TrackingConfigs::FULL_STEP;
         const MotorController& motorController;
         const Tracker& tracker;
-
-        unsigned short missedTicks = 0;
         Coordinate currentCoord;
         Coordinate targetCoord;
         uint8_t cooldownCounter = 0;

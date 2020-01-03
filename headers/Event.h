@@ -10,10 +10,14 @@ enum class Event {
     STOP_CAPTURING,
     INCREASE_EXPOSURE_TIME,
     DECREASE_EXPOSURE_TIME,
-
-    // Remote
+    
+    // Screen
     TOGGLE_BOTTOM_ROW,
     TOGGLE_TOP_ROW,
+
+    // Manual Control
+    MANUAL_SLEW_RA,
+    MANUAL_SLEW_ARA,
 
     MOTOR_TEST,
     BUTTON_HELD,

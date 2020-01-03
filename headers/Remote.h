@@ -6,14 +6,13 @@
 
 class Remote {
     public:
-        // Remote(int pin);
-        Remote(int pin): _pin(pin), _irRecv(pin) {};
+        Remote(int pin): pin(pin), irReceiver(pin) {};
         void setup();
         Event checkForPress();
     
     private:
-        int _pin;
-        IRrecv _irRecv;
-        decode_results &_decodedSig;
+        int pin;
+        IRrecv irReceiver;
+        decode_results &decodedSignal;
         Event decodeKeyPress(unsigned long keyCode);
 };

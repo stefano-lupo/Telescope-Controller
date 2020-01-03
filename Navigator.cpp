@@ -1,5 +1,9 @@
 #include ".\headers\Navigator.h"
 
+void Navigator::manualSlew(int direction) {
+  slew(direction, 500);
+}
+
 void Navigator::nextTrackingConfig() {
   if (trackingConfig == &TrackingConfigs::FULL_STEP) {
       Serial.println("Full to half");
@@ -8,11 +12,19 @@ void Navigator::nextTrackingConfig() {
       setTrackingConfig(&TrackingConfigs::QUARTER_STEP);
       Serial.println("Half to quart");
   } else if (trackingConfig == &TrackingConfigs::QUARTER_STEP) {
+      setTrackingConfig(&TrackingConfigs::EIGHT_STEP);
+      Serial.println("Quart to eight");
+  } else if (trackingConfig == &TrackingConfigs::EIGHT_STEP) {
+      setTrackingConfig(&TrackingConfigs::SIXTEENTH_STEP);
+      Serial.println("Eight to sixteenth");
+  } else if (trackingConfig == &TrackingConfigs::SIXTEENTH_STEP) {
       setTrackingConfig(&TrackingConfigs::FULL_STEP);
-      Serial.println("Quart to full");
+      Serial.println("Sixteenth to full");
   } else {
-    Serial.println("Unsure how to get to next config");
-  }
+      // Workaround. For some reason the initial config in navigator.h doesn't match equality
+      setTrackingConfig(&TrackingConfigs::FULL_STEP);
+      Serial.println("Unsure how to get to next config");
+    }
 }
 
 void Navigator::setTrackingConfig(const TrackingConfig* newConfig) {
@@ -70,9 +82,9 @@ void Navigator::moveIfNesc() {
         slewHours(hoursToSlewThisTick);
 
         // Only start the cooldown once finished slewing hours
-        if (hoursToSlewThisTick == delta.hours) {
-          startCooldown();
-        }
+        // if (hoursToSlewThisTick == delta.hours) {
+        //   startCooldown();
+        // }
 
         Serial.print("Slewed ");
         Serial.print(hoursToSlewThisTick);
@@ -82,14 +94,14 @@ void Navigator::moveIfNesc() {
         Serial.print("Slewed ");
         Serial.print(delta.minutes);
         Serial.println(" minutes");
-        startCooldown();
+        // startCooldown();
       } else {
         slewSeconds(delta.seconds);
         Serial.print("Slewed ");
         Serial.print(delta.seconds);
         Serial.println(" seconds");
         trackTarget();
-        startCooldown();
+        // startCooldown();
       }
 
 
@@ -186,8 +198,10 @@ void Navigator::slewSeconds(int deltaSeconds) {
 }
 
 void Navigator::slew(boolean direction, int numSteps) {
+  motorController.enableMotor();
   motorController.setDirection(direction);
   motorController.stepMotor(abs(numSteps));
+  motorController.disableMotor();
 }
 
 boolean Navigator::getDirectionFromDelta(int deltaValue) {

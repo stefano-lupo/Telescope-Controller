@@ -3,7 +3,7 @@
 #include "multiCameraIrControl.h"
 
 const long DEFAULT_SHUTTER_TIME_MILLIS = 45000;
-const int SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS = 500;
+const int SHUTTER_TIME_CHANGE_RESOLUTION_MILLIS = 50000;
 
 class CameraController {
     public:
@@ -22,7 +22,9 @@ class CameraController {
     
     private:
         int irPin, interuptPeriodMillis;
-        long shutterTimeMillis = DEFAULT_SHUTTER_TIME_MILLIS, accumulatedTimeMillis = 0;
+        long shutterTimeMillis = DEFAULT_SHUTTER_TIME_MILLIS, 
+            accumulatedTimeMillis = 0,
+            cooldownPeriodMillis = 15000;
         boolean hasShutterToggle = false;
         boolean active = false;
         Sony camera;
